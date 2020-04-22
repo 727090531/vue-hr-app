@@ -7,11 +7,11 @@ import axios from "axios";
 import VueAxios from "vue-axios";
 import './assets/css/global.css'
 //导入api的全局函数
-// import {postKeyValueRequest} from './utils/api'
+import {postKeyValueRequest} from './utils/api'
 
 Vue.config.productionTip = false
 Vue.use(VueAxios,axios)
-// Vue.prototype.postKeyValueRequest =postKeyValueRequest;
+Vue.prototype.postKeyValueRequest =postKeyValueRequest;
 
 
 new Vue({
