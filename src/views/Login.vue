@@ -7,7 +7,8 @@
                 <el-input v-model="loginForm.username" prefix-icon="el-icon-user"></el-input>
             </el-form-item>
             <el-form-item label="" prop="password">
-                <el-input v-model="loginForm.password" show-password prefix-icon="el-icon-key" ></el-input>
+                <el-input v-model="loginForm.password" show-password prefix-icon="el-icon-key"
+                @keydown.enter.native="login"></el-input>
             </el-form-item>
             <el-checkbox size="normal" class="loginRemember" v-model="checked">记住密码</el-checkbox>
             <el-form-item>
