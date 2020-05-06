@@ -1,7 +1,7 @@
 <template>
     <div>
 <!-- 登录表单区 -->
-        <el-form :model="loginForm" label-width="80px" class="loginContainer" :rules="rules" ref="loginRef" >
+        <el-form :model="loginForm" label-width="80px" class="loginContainer" :rules="rules" ref="loginRef" v-loading="loading">
             <h3 class="loginTitle">系统登录</h3>
             <el-form-item label="" prop="username">
                 <el-input v-model="loginForm.username" prefix-icon="el-icon-user"></el-input>
@@ -9,6 +9,11 @@
             <el-form-item label="" prop="password">
                 <el-input v-model="loginForm.password" show-password prefix-icon="el-icon-key"
                 @keydown.enter.native="login"></el-input>
+            </el-form-item>
+            <el-form-item label="" prop="code">
+                <el-input v-model="loginForm.code"  prefix-icon="el-icon-key" style="width:250px;margin-right: 5px"
+                        placehodler="点击图片刷新验证码" @keydown.enter.native="login"></el-input>
+                <el-image :src="codeUrl" @click="refreshCode" alt="加载失败" style="cursor: pointer"></el-image>
             </el-form-item>
             <el-checkbox size="normal" class="loginRemember" v-model="checked">记住密码</el-checkbox>
             <el-form-item>
@@ -23,21 +28,14 @@
     export default {
         name: 'Login',
         data() {
-            // let checkPassword = (rule,value,callback)=>{
-            //     if (value===''){
-            //         callback(new Error('请输入密码'));
-            //     }else {
-            //      if (this.loginForm.password !==''){
-            //          this.$refs.loginRef.validateField('password');
-            //      }
-            //      callback();
-            //     }
-            // }
+
             return {
                 loginForm: {
                     username:'',
-                    password:''
+                    password:'',
+                    code:''
                 },
+                codeUrl:'/verifyCode?time='+ new Date().getTime(),
                 rules:{
                 username:[
                     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -46,9 +44,13 @@
                 password:[
                     { required: true, $message: '请输入密码', trigger: 'blur' },
                     { min: 3, max: 20, $message: '长度在 3 到 20 个字符', trigger: 'blur' }
-                ]
+                ],
+                code:[{required: true, $message: '请输入验证码', trigger: 'blur'}]
+
                 },
+
                 checked: true,
+                loading:false
             }
         },
 
@@ -58,12 +60,16 @@
               this.$refs.loginRef.resetFields()
           },
           login:function () {
+              //对整个表单进行校验，参数为回调函数(校验结束后会被调用)，并传入两个参数：
+              // 是否校验成功和未通过校验的字段。若不传入回调函数，则会返回一个 promise
               this.$refs.loginRef.validate(async valid => {
                   // console.log(valid)
                   if (!valid) {
                       return this.$message.error('用户名或密码格式不正确，请重新输入')
                   }
+                  this.loading = true
                   const resp = await this.postKeyValueRequest('/doLogin', this.loginForm)
+                  this.loading = false
                   console.log(resp)
                   if (resp) {
                       console.log(resp.obj)
@@ -75,9 +81,15 @@
                       let path = this.$route.query.redirect
                       // 2. 通过编程式导航跳转到后台主页，路由地址是 /home
                       await this.$router.replace((path === '/' || path === undefined) ? '/home' : path)
+                  }else {
+                      //登录失败刷新验证码
+                      this.refreshCode()
                   }
               })
-          }
+          },
+            refreshCode(){
+               this.codeUrl = '/verifyCode?time='+ new Date().getTime()
+            }
         }
     }
 </script>

@@ -18,6 +18,13 @@
                 </template>
             </el-table-column>
         </el-table>
+        <div class="pageable">
+            <el-pagination background :total="pageInfo.total" :page-sizes="[5,10,20,50,100]" :page-size="5"
+                           @current-change="handleCurrentChange"
+                           @size-change="handleSizeChange"
+                           layout="sizes, prev, pager, next, jumper, ->, total, slot">
+            </el-pagination>
+        </div>
         <el-button type="danger" size="small" style="margin-top: 8px" @click="deleteMany"
                    :disabled="multipleSelection.length === 0">
             批量删除
@@ -34,8 +41,6 @@
       </span>
         </el-dialog>
     </div>
-        </div>
-    </div>
 </template>
 
 <script>
@@ -50,6 +55,11 @@
               updatePos:{
                   name:''
               },
+              pageInfo:{
+                total:0,
+                page:1,
+                size:5
+              },
               dialogVisible:false,
               multipleSelection:[]
           }
@@ -57,18 +67,27 @@
         methods: {
             // 表格数据初始化处理
             async initPositions() {
-                const data = await this.getRequest('/system/basic/pos/')
+                const data = await this.getRequest('/system/basic/pos/?page='+this.pageInfo.page+'&size='+this.pageInfo.size)
                 if (data) {
-                    this.positions = data.obj
+                    this.positions = data.obj.list
+                    this.pageInfo.total =data.obj.total
                 }
+            },
+            handleCurrentChange(currentSize){
+                this.pageInfo.size=currentSize
+                this.initPositions()
+            },
+            handleSizeChange(currentPage){
+                this.pageInfo.page=currentPage
+                this.initPositions()
             },
             // 添加新记录的事件处理
             async addPosition() {
                 if (this.pos.name) {
                     const resp = await this.postRequest('/system/basic/pos/', this.pos)
-                    if (resp) {
-                        this.initPositions()
-                        this.pos.name = ''
+                        if (resp) {
+                            this.initPositions()
+                            this.pos.name = ''
                     }
                 } else {
                     this.$message.error('职位名称不能为空')
